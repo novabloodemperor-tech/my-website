@@ -453,167 +453,178 @@
 
     <script>
         const subjects = [
-            "Mathematics", "English", "Kiswahili", "Physics", "Chemistry", 
-            "Biology", "Geography", "History", "Business Studies", "Agriculture",
-            "Computer Studies", "French", "German", "Arabic", "Music", "Art & Design"
-        ];
+    "Mathematics", "English", "Kiswahili", "Physics", "Chemistry", 
+    "Biology", "Geography", "History", "Business Studies", "Agriculture",
+    "Computer Studies", "French", "German", "Arabic", "Music", "Art & Design"
+];
 
-        const grades = ["A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "E"];
+const grades = ["A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "E"];
 
-        function initializeSubjects() {
-            const container = document.getElementById('subjectsContainer');
-            container.innerHTML = '';
-            
-            subjects.forEach(subject => {
-                const subjectItem = document.createElement('div');
-                subjectItem.className = 'subject-item';
-                
-                subjectItem.innerHTML = `
-                    <span>${subject}</span>
-                    <select id="grade-${subject}">
-                        <option value="">Select Grade</option>
-                        ${grades.map(grade => `<option value="${grade}">${grade}</option>`).join('')}
-                    </select>
-                `;
-                
-                container.appendChild(subjectItem);
-            });
+function initializeSubjects() {
+    const container = document.getElementById('subjectsContainer');
+    container.innerHTML = '';
+    
+    subjects.forEach(subject => {
+        const subjectItem = document.createElement('div');
+        subjectItem.className = 'subject-item';
+        
+        subjectItem.innerHTML = `
+            <span>${subject}</span>
+            <select id="grade-${subject}">
+                <option value="">Select Grade</option>
+                ${grades.map(grade => `<option value="${grade}">${grade}</option>`).join('')}
+            </select>
+        `;
+        
+        container.appendChild(subjectItem);
+    });
+}
+
+async function findCourses() {
+    const clusterPoints = document.getElementById('clusterPoints').value;
+    
+    if (!clusterPoints) {
+        showError('Please enter your cluster points');
+        return;
+    }
+
+    if (!document.getElementById('agreeTerms').checked) {
+        showError('Please agree to the terms and conditions');
+        return;
+    }
+
+    // Collect grades
+    const userGrades = {};
+    subjects.forEach(subject => {
+        const grade = document.getElementById(`grade-${subject}`).value;
+        if (grade) {
+            userGrades[subject] = grade;
         }
+    });
 
-        async function findCourses() {
-            const clusterPoints = document.getElementById('clusterPoints').value;
-            
-            if (!clusterPoints) {
-                showError('Please enter your cluster points');
-                return;
-            }
+    if (Object.keys(userGrades).length === 0) {
+        showError('Please enter at least one subject grade');
+        return;
+    }
 
-            if (!document.getElementById('agreeTerms').checked) {
-                showError('Please agree to the terms and conditions');
-                return;
-            }
-
-            // Collect grades
-            const userGrades = {};
-            subjects.forEach(subject => {
-                const grade = document.getElementById(`grade-${subject}`).value;
-                if (grade) {
-                    userGrades[subject] = grade;
-                }
-            });
-
-            if (Object.keys(userGrades).length === 0) {
-                showError('Please enter at least one subject grade');
-                return;
-            }
-
-            try {
-               const response = await fetch('https://novabloodemperor-tech-backend.onrender.com/api/check-eligibility/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    
-                },
-                body: JSON.stringify({
-                    cluster_points: parseFloat(clusterPoints),
-                    grades: userGrades
-                })
-             });
-
-
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showResults(data, clusterPoints);
-                } else {
-                    showError('Error checking eligibility: ' + (data.detail || 'Unknown error'));
-                }
-            } catch (error) {
-                showError('Network error: ' + error.message);
-            }
-        }
-
-        function showResults(data, userPoints) {
-            const resultsSection = document.getElementById('resultsSection');
-            const resultsContent = document.getElementById('resultsContent');
-            
-            if (data.eligible_programmes.length === 0) {
-                resultsContent.innerHTML = '<p>No courses found matching your criteria. Try adjusting your grades or cluster points.</p>';
-            } else {
-                let content = `<p><strong>Found ${data.total_found} eligible courses:</strong></p>`;
-                data.eligible_programmes.forEach(programme => {
-                    content += `
-                        <div class="programme-card">
-                            <div class="programme-name">${programme.programme_name}</div>
-                            <div class="programme-university">🏛️ ${programme.university}</div>
-                            <div class="programme-points">📊 Required: ${programme.required_cluster} points | Your points: ${userPoints}</div>
-                            <div class="programme-code">🔢 Code: ${programme.programme_code}</div>
-                        </div>
-                    `;
-                });
-                resultsContent.innerHTML = content;
-            }
-            
-            resultsSection.style.display = 'block';
-            resultsSection.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function showError(message) {
-            const errorElement = document.getElementById('courseError');
-            errorElement.textContent = message;
-            errorElement.style.display = 'block';
-            setTimeout(() => {
-                errorElement.style.display = 'none';
-            }, 5000);
-        }
-
-        function downloadPDF() {
-            alert('PDF download will be implemented after M-Pesa integration');
-        }
-
-        function newSearch() {
-            document.getElementById('resultsSection').style.display = 'none';
-            document.getElementById('clusterPoints').value = '';
-            document.getElementById('agreeTerms').checked = false;
-            subjects.forEach(subject => {
-                document.getElementById(`grade-${subject}`).value = '';
-            });
-        }
-
-        // Mobile Menu Functions
-        function toggleMobileMenu() {
-            const mobileNav = document.getElementById('mobileNav');
-            mobileNav.classList.toggle('active');
-        }
-
-        // Close mobile menu when clicking outside
-        document.addEventListener('click', function(event) {
-            const mobileNav = document.getElementById('mobileNav');
-            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-            
-            if (!mobileNav.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
-                mobileNav.classList.remove('active');
-            }
+    try {
+        // ADD DEBUG LOGGING
+        console.log('Making POST request to check-eligibility');
+        console.log('Request data:', {
+            cluster_points: parseFloat(clusterPoints),
+            grades: userGrades
         });
 
-        // Close mobile menu when clicking a link
-        document.querySelectorAll('.mobile-nav-links a').forEach(link => {
-            link.addEventListener('click', () => {
-                document.getElementById('mobileNav').classList.remove('active');
-            });
+        const response = await fetch('https://novabloodemperor-tech-backend.onrender.com/api/check-eligibility/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            // Remove any extra headers that might cause issues
+            // 'X-Admin-Access': 'true' // Remove this line if it exists
+            },
+            body: JSON.stringify({
+                cluster_points: parseFloat(clusterPoints),
+                grades: userGrades
+            })
         });
-
-        function showAdminModal() {
-            const password = prompt('Enter admin password:');
-            if (password === 'admin123') {
-                window.open('http://127.0.0.1:8000/admin', '_blank');
-            } else if (password) {
-                alert('Incorrect password');
-            }
+        
+        console.log('Response status:', response.status);
+        
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        if (response.ok) {
+            showResults(data, clusterPoints);
+        } else {
+            showError('Error checking eligibility: ' + (data.detail || 'Unknown error'));
         }
+    } catch (error) {
+        console.error('Full error:', error);
+        showError('Network error: ' + error.message);
+    }
+} // THIS CLOSING BRACE WAS MISSING
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', initializeSubjects);
+function showResults(data, userPoints) {
+    const resultsSection = document.getElementById('resultsSection');
+    const resultsContent = document.getElementById('resultsContent');
+    
+    if (data.eligible_programmes.length === 0) {
+        resultsContent.innerHTML = '<p>No courses found matching your criteria. Try adjusting your grades or cluster points.</p>';
+    } else {
+        let content = `<p><strong>Found ${data.total_found} eligible courses:</strong></p>`;
+        data.eligible_programmes.forEach(programme => {
+            content += `
+                <div class="programme-card">
+                    <div class="programme-name">${programme.programme_name}</div>
+                    <div class="programme-university">🏛️ ${programme.university}</div>
+                    <div class="programme-points">📊 Required: ${programme.required_cluster} points | Your points: ${userPoints}</div>
+                    <div class="programme-code">🔢 Code: ${programme.programme_code}</div>
+                </div>
+            `;
+        });
+        resultsContent.innerHTML = content;
+    }
+    
+    resultsSection.style.display = 'block';
+    resultsSection.scrollIntoView({ behavior: 'smooth' });
+}
+
+function showError(message) {
+    const errorElement = document.getElementById('courseError');
+    errorElement.textContent = message;
+    errorElement.style.display = 'block';
+    setTimeout(() => {
+        errorElement.style.display = 'none';
+    }, 5000);
+}
+
+function downloadPDF() {
+    alert('PDF download will be implemented after M-Pesa integration');
+}
+
+function newSearch() {
+    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('clusterPoints').value = '';
+    document.getElementById('agreeTerms').checked = false;
+    subjects.forEach(subject => {
+        document.getElementById(`grade-${subject}`).value = '';
+    });
+}
+
+// Mobile Menu Functions
+function toggleMobileMenu() {
+    const mobileNav = document.getElementById('mobileNav');
+    mobileNav.classList.toggle('active');
+}
+
+// Close mobile menu when clicking outside
+document.addEventListener('click', function(event) {
+    const mobileNav = document.getElementById('mobileNav');
+    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+    
+    if (!mobileNav.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
+        mobileNav.classList.remove('active');
+    }
+});
+
+// Close mobile menu when clicking a link
+document.querySelectorAll('.mobile-nav-links a').forEach(link => {
+    link.addEventListener('click', () => {
+        document.getElementById('mobileNav').classList.remove('active');
+    });
+});
+
+function showAdminModal() {
+    const password = prompt('Enter admin password:');
+    if (password === 'admin123') {
+        window.open('http://127.0.0.1:8000/admin', '_blank');
+    } else if (password) {
+        alert('Incorrect password');
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', initializeSubjects);
     </script>
 </body>
 </html>
