@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Package - CoursePilot Kenya</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2c5aa0;
+            --secondary: #e74c3c;
+            --accent: #f39c12;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --success: #27ae60;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-cta {
+            background: var(--secondary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        /* Mobile Navigation */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--dark);
+            cursor: pointer;
+        }
+
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            z-index: 999;
+        }
+
+        .mobile-nav.active {
+            display: block;
+        }
+
+        .mobile-nav-links {
+            list-style: none;
+            padding: 1rem 0;
+        }
+
+        .mobile-nav-links li {
+            border-bottom: 1px solid #eee;
+        }
+
+        .mobile-nav-links a {
+            display: block;
+            padding: 1rem 2rem;
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .mobile-nav-links a:hover {
+            background: var(--light);
+        }
+
+        .page-content {
+            padding: 120px 2rem 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .premium-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            text-align: center;
+            border: 3px solid var(--accent);
+        }
+
+        .premium-icon {
+            font-size: 4rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .premium-price {
+            font-size: 3rem;
+            color: var(--secondary);
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .premium-features {
+            list-style: none;
+            text-align: left;
+            margin: 2rem 0;
+        }
+
+        .premium-features li {
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+            font-size: 1.1rem;
+        }
+
+        .premium-features li:before {
+            content: "✓";
+            color: var(--success);
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .service-button {
+            background: var(--accent);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        .service-button:hover {
+            background: #e67e22;
+        }
+
+        .savings-badge {
+            background: var(--success);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .page-content {
+                padding: 100px 1rem 1rem;
+            }
+
+            .premium-card {
+                padding: 2rem;
+            }
+
+            .premium-icon {
+                font-size: 3rem;
+            }
+
+            .premium-price {
+                font-size: 2.5rem;
+            }
+
+            .nav-container {
+                padding: 1rem;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                CoursePilot Kenya
+            </a>
+            
+            <!-- Desktop Navigation -->
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="calculator.html">Calculator</a></li>
+                <li><a href="courses.html">Courses</a></li>
+                <li><a href="premium.html">Premium</a></li>
+                <li><a href="articles.html">Career Guide</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="#" class="nav-cta" onclick="showAdminModal()">Admin</a></li>
+            </ul>
+
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Navigation -->
+        <div class="mobile-nav" id="mobileNav">
+            <ul class="mobile-nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="calculator.html">Calculator</a></li>
+                <li><a href="courses.html">Courses</a></li>
+                <li><a href="premium.html">Premium</a></li>
+                <li><a href="articles.html">Career Guide</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="#" onclick="showAdminModal()">Admin</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- Premium Content -->
+    <div class="page-content">
+        <div class="premium-card">
+            <div class="premium-icon">
+                <i class="fas fa-crown"></i>
+            </div>
+            <h1>Premium Package</h1>
+            <p class="savings-badge">Save KSh 20</p>
+            <div class="premium-price">KSh 130</div>
+            <p>Get both services at a discounted rate with premium features</p>
+            
+            <ul class="premium-features">
+                <li>Complete cluster points calculation</li>
+                <li>Full course matching service</li>
+                <li>Priority customer support</li>
+                <li>Detailed PDF report included</li>
+                <li>Access to all university programs</li>
+                <li>Subject requirements analysis</li>
+                <li>Best value package</li>
+            </ul>
+
+            <button class="service-button" onclick="getPremium()">
+                Get Premium Package - KSh 130
+            </button>
+
+            <p style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                Individual services: Calculator (KSh 50) + Courses (KSh 100) = KSh 150
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function getPremium() {
+            alert('Premium package purchase will be implemented with M-Pesa integration');
+        }
+
+        // Mobile Menu Functions
+        function toggleMobileMenu() {
+            const mobileNav = document.getElementById('mobileNav');
+            mobileNav.classList.toggle('active');
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const mobileNav = document.getElementById('mobileNav');
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (!mobileNav.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
+                mobileNav.classList.remove('active');
+            }
+        });
+
+        // Close mobile menu when clicking a link
+        document.querySelectorAll('.mobile-nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('mobileNav').classList.remove('active');
+            });
+        });
+
+        function showAdminModal() {
+            const password = prompt('Enter admin password:');
+            if (password === 'admin123') {
+                window.open('http://127.0.0.1:8000/admin', '_blank');
+            } else if (password) {
+                alert('Incorrect password');
+            }
+        }
+    </script>
+</body>
+</html>

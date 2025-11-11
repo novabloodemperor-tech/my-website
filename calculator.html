@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cluster Points Calculator - CoursePilot Kenya</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2c5aa0;
+            --secondary: #e74c3c;
+            --accent: #f39c12;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --success: #27ae60;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        /* Header & Navigation - SAME AS INDEX.HTML */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .logo i {
+            color: var(--secondary);
+        }
+
+        /* Desktop Navigation */
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary);
+        }
+
+        .nav-cta {
+            background: var(--secondary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        /* Mobile Navigation - SAME AS INDEX.HTML */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--dark);
+            cursor: pointer;
+        }
+
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            z-index: 999;
+        }
+
+        .mobile-nav.active {
+            display: block;
+        }
+
+        .mobile-nav-links {
+            list-style: none;
+            padding: 1rem 0;
+        }
+
+        .mobile-nav-links li {
+            border-bottom: 1px solid #eee;
+        }
+
+        .mobile-nav-links a {
+            display: block;
+            padding: 1rem 2rem;
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .mobile-nav-links a:hover {
+            background: var(--light);
+        }
+
+        /* Page Content */
+        .page-content {
+            padding: 120px 2rem 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--dark);
+        }
+
+        .form-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .subject-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: var(--light);
+            border-radius: 8px;
+        }
+
+        select {
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+        }
+
+        .terms-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .terms-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .terms-checkbox input {
+            width: auto;
+            margin-top: 5px;
+        }
+
+        .terms-text {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .service-button {
+            background: var(--primary);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 2rem;
+            padding: 2rem;
+            background: var(--light);
+            border-radius: 10px;
+        }
+
+        /* Responsive Design - SAME AS INDEX.HTML */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .page-content {
+                padding: 100px 1rem 1rem;
+            }
+
+            .form-container {
+                padding: 1.5rem;
+            }
+
+            .form-header h1 {
+                font-size: 2rem;
+            }
+
+            .subjects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-container {
+                padding: 1rem;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header - SAME AS INDEX.HTML -->
+    <header class="header">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                CoursePilot Kenya
+            </a>
+            
+            <!-- Desktop Navigation -->
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="calculator.html">Calculator</a></li>
+                <li><a href="courses.html">Courses</a></li>
+                <li><a href="premium.html">Premium</a></li>
+                <li><a href="articles.html">Career Guide</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="#" class="nav-cta" onclick="showAdminModal()">Admin</a></li>
+            </ul>
+
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Navigation -->
+        <div class="mobile-nav" id="mobileNav">
+            <ul class="mobile-nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="calculator.html">Calculator</a></li>
+                <li><a href="courses.html">Courses</a></li>
+                <li><a href="premium.html">Premium</a></li>
+                <li><a href="articles.html">Career Guide</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li><a href="#" onclick="showAdminModal()">Admin</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- Calculator Content -->
+    <div class="page-content">
+        <div class="form-container">
+            <div class="form-header">
+                <h1><i class="fas fa-calculator"></i> Cluster Points Calculator</h1>
+                <p>Enter your KCSE grades to calculate your cluster points - KSh 50</p>
+            </div>
+
+            <div class="error" id="calcError"></div>
+            
+            <div class="form-group">
+                <label>Select Your Best 8 Subjects & Grades:</label>
+                <div class="subjects-grid" id="subjectsContainer"></div>
+            </div>
+
+            <div class="terms-section">
+                <div class="terms-checkbox">
+                    <input type="checkbox" id="calcTerms">
+                    <div class="terms-text">
+                        I understand that this calculator uses official KUCCPS formulas but results should be verified with the official KUCCPS portal. 
+                        CoursePilot provides guidance only and is not responsible for placement decisions. The service provider makes no warranties about 
+                        the accuracy of results. Always double-check with official sources.
+                    </div>
+                </div>
+            </div>
+
+            <button class="service-button" onclick="calculateClusterPoints()">
+                Calculate My Points - KSh 50
+            </button>
+
+            <div class="results-section" id="resultsSection">
+                <h3>Your Results</h3>
+                <div id="resultsContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const subjects = [
+            "Mathematics", "English", "Kiswahili", "Physics", "Chemistry", 
+            "Biology", "Geography", "History", "Business Studies", "Agriculture",
+            "Computer Studies", "French", "German", "Arabic", "Music", "Art & Design"
+        ];
+
+        const grades = [
+            {value: "A", points: 12}, {value: "A-", points: 11}, {value: "B+", points: 10},
+            {value: "B", points: 9}, {value: "B-", points: 8}, {value: "C+", points: 7},
+            {value: "C", points: 6}, {value: "C-", points: 5}, {value: "D+", points: 4},
+            {value: "D", points: 3}, {value: "D-", points: 2}, {value: "E", points: 1}
+        ];
+
+        function initializeSubjects() {
+            const container = document.getElementById('subjectsContainer');
+            container.innerHTML = '';
+            
+            subjects.forEach(subject => {
+                const subjectItem = document.createElement('div');
+                subjectItem.className = 'subject-item';
+                
+                subjectItem.innerHTML = `
+                    <span>${subject}</span>
+                    <select id="grade-${subject}">
+                        <option value="">Select Grade</option>
+                        ${grades.map(grade => `<option value="${grade.value}" data-points="${grade.points}">${grade.value}</option>`).join('')}
+                    </select>
+                `;
+                
+                container.appendChild(subjectItem);
+            });
+        }
+
+        function calculateClusterPoints() {
+            if (!document.getElementById('calcTerms').checked) {
+                showError('Please agree to the terms and conditions');
+                return;
+            }
+
+            const selectedGrades = [];
+            subjects.forEach(subject => {
+                const select = document.getElementById(`grade-${subject}`);
+                const selectedOption = select.options[select.selectedIndex];
+                if (selectedOption.value) {
+                    selectedGrades.push({
+                        subject: subject,
+                        grade: selectedOption.value,
+                        points: parseInt(selectedOption.dataset.points)
+                    });
+                }
+            });
+
+            if (selectedGrades.length < 5) {
+                showError('Please select at least 5 subjects');
+                return;
+            }
+
+            selectedGrades.sort((a, b) => b.points - a.points);
+            const best8 = selectedGrades.slice(0, 8);
+            const totalPoints = best8.reduce((sum, grade) => sum + grade.points, 0);
+            const clusterPoints = (totalPoints / 8) * (48 / 12);
+
+            showResults(clusterPoints.toFixed(3), best8);
+        }
+
+        function showResults(points, bestSubjects) {
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsContent = document.getElementById('resultsContent');
+            
+            let content = `
+                <div style="background: var(--success); color: white; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <strong>Your Cluster Points: ${points}</strong>
+                </div>
+                <h4>Your Best 8 Subjects:</h4>
+                <div class="subjects-grid">
+            `;
+            
+            bestSubjects.forEach(subject => {
+                content += `
+                    <div class="subject-item">
+                        <span>${subject.subject}</span>
+                        <span>${subject.grade} (${subject.points} pts)</span>
+                    </div>
+                `;
+            });
+            
+            content += '</div>';
+            resultsContent.innerHTML = content;
+            resultsSection.style.display = 'block';
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('calcError');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 5000);
+        }
+
+        // Mobile Menu Functions - SAME AS INDEX.HTML
+        function toggleMobileMenu() {
+            const mobileNav = document.getElementById('mobileNav');
+            mobileNav.classList.toggle('active');
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const mobileNav = document.getElementById('mobileNav');
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (!mobileNav.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
+                mobileNav.classList.remove('active');
+            }
+        });
+
+        // Close mobile menu when clicking a link
+        document.querySelectorAll('.mobile-nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('mobileNav').classList.remove('active');
+            });
+        });
+
+        function showAdminModal() {
+            const password = prompt('Enter admin password:');
+            if (password === 'admin123') {
+                window.open('http://127.0.0.1:8000/admin', '_blank');
+            } else if (password) {
+                alert('Incorrect password');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', initializeSubjects);
+    </script>
+</body>
+</html>
