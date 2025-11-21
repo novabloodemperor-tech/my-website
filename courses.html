@@ -643,7 +643,7 @@ function showError(message) {
     }, 5000);
 }
 
-aasync function downloadPDF() {
+async function downloadPDF() {
     const eligibleProgrammes = [];
     
     // Collect eligible programmes from the current results
@@ -653,12 +653,14 @@ aasync function downloadPDF() {
         const university = card.querySelector('.programme-university').textContent.replace('🏛️ ', '');
         const pointsText = card.querySelector('.programme-points').textContent;
         const pointsMatch = pointsText.match(/Required: ([\d.]+) points/);
+        const codeElement = card.querySelector('.programme-code');
+        const programmeCode = codeElement ? codeElement.textContent.replace('🔢 Code: ', '') : 'N/A';
         
         eligibleProgrammes.push({
             programme_name: programmeName,
             university: university,
             cluster_points: pointsMatch ? parseFloat(pointsMatch[1]) : 0,
-            programme_code: 'N/A' // We'll get this from the backend response later
+            programme_code: programmeCode
         });
     });
     
@@ -681,20 +683,23 @@ aasync function downloadPDF() {
             })
         });
         
-        const data = await response.json();
-        
         if (response.ok) {
-            // For now, show the PDF content in an alert
-            // Later we can implement actual PDF download
-            alert('PDF Generated Successfully!\\n\\n' + 
-                  'Total Courses: ' + data.total_courses + '\\n' +
-                  'File Name: ' + data.file_name + '\\n\\n' +
-                  'Note: ' + data.note);
+            // Create blob from response and download
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `eligible_courses_${clusterPoints}_points.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
             
-            // You can also console.log the full content for testing
-            console.log('PDF Content:', data.pdf_content);
+            alert('PDF downloaded successfully!');
         } else {
-            alert('Error: ' + (data.message || 'Failed to generate PDF'));
+            const errorData = await response.json();
+            alert('Error: ' + (errorData.message || 'Failed to generate PDF'));
         }
     } catch (error) {
         alert('Network error: ' + error.message);
