@@ -643,13 +643,63 @@ function showError(message) {
     }, 5000);
 }
 
-async function downloadPDF() {
+aasync function downloadPDF() {
+    const eligibleProgrammes = [];
+    
+    // Collect eligible programmes from the current results
+    const programmeCards = document.querySelectorAll('.programme-card');
+    programmeCards.forEach(card => {
+        const programmeName = card.querySelector('.programme-name').textContent;
+        const university = card.querySelector('.programme-university').textContent.replace('🏛️ ', '');
+        const pointsText = card.querySelector('.programme-points').textContent;
+        const pointsMatch = pointsText.match(/Required: ([\d.]+) points/);
+        
+        eligibleProgrammes.push({
+            programme_name: programmeName,
+            university: university,
+            cluster_points: pointsMatch ? parseFloat(pointsMatch[1]) : 0,
+            programme_code: 'N/A' // We'll get this from the backend response later
+        });
+    });
+    
+    if (eligibleProgrammes.length === 0) {
+        alert('No courses found to download. Please find eligible courses first.');
+        return;
+    }
+    
+    const clusterPoints = document.getElementById('clusterPoints').value;
+    
     try {
-        const resultsContent = document.getElementById('resultsContent');
-        if (!resultsContent.innerHTML.includes('programme-card')) {
-            alert('No course results to download');
-            return;
+        const response = await fetch('https://novabloodemperor-tech-backend.onrender.com/api/download-pdf/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                eligible_programmes: eligibleProgrammes,
+                cluster_points: clusterPoints
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // For now, show the PDF content in an alert
+            // Later we can implement actual PDF download
+            alert('PDF Generated Successfully!\\n\\n' + 
+                  'Total Courses: ' + data.total_courses + '\\n' +
+                  'File Name: ' + data.file_name + '\\n\\n' +
+                  'Note: ' + data.note);
+            
+            // You can also console.log the full content for testing
+            console.log('PDF Content:', data.pdf_content);
+        } else {
+            alert('Error: ' + (data.message || 'Failed to generate PDF'));
         }
+    } catch (error) {
+        alert('Network error: ' + error.message);
+    }
+}
 
         // Get the current course data
         const clusterPoints = document.getElementById('clusterPoints').value;
