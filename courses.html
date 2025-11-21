@@ -452,257 +452,48 @@
     </div>
 
     <script>
-        const subjects = [
-    "Mathematics", "English", "Kiswahili", "Physics", "Chemistry", 
-    "Biology", "Geography", "History", "Business Studies", "Agriculture",
-    "Computer Studies", "French", "German", "Arabic", "Music", "Art & Design"
-];
+    const subjects = [
+        "Mathematics", "English", "Kiswahili", "Physics", "Chemistry", 
+        "Biology", "Geography", "History", "Business Studies", "Agriculture",
+        "Computer Studies", "French", "German", "Arabic", "Music", "Art & Design"
+    ];
 
-const grades = ["A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "E"];
+    const grades = ["A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "E"];
 
-function initializeSubjects() {
-    const container = document.getElementById('subjectsContainer');
-    container.innerHTML = '';
-    
-    subjects.forEach(subject => {
-        const subjectItem = document.createElement('div');
-        subjectItem.className = 'subject-item';
+    function initializeSubjects() {
+        const container = document.getElementById('subjectsContainer');
+        container.innerHTML = '';
         
-        subjectItem.innerHTML = `
-            <span>${subject}</span>
-            <select id="grade-${subject}">
-                <option value="">Select Grade</option>
-                ${grades.map(grade => `<option value="${grade}">${grade}</option>`).join('')}
-            </select>
-        `;
-        
-        container.appendChild(subjectItem);
-    });
-}
-
-async function processPayment() {
-    const clusterPoints = document.getElementById('clusterPoints').value;
-    
-    if (!clusterPoints) {
-        showError('Please enter your cluster points first');
-        return;
-    }
-
-    if (!document.getElementById('agreeTerms').checked) {
-        showError('Please agree to the terms and conditions');
-        return;
-    }
-
-    // Collect grades to verify user has entered data
-    const userGrades = {};
-    subjects.forEach(subject => {
-        const grade = document.getElementById(`grade-${subject}`).value;
-        if (grade) {
-            userGrades[subject] = grade;
-        }
-    });
-
-    if (Object.keys(userGrades).length === 0) {
-        showError('Please enter at least one subject grade');
-        return;
-    }
-
-    const phone = prompt('Enter your M-Pesa phone number (e.g., 254712345678):');
-    if (!phone) return;
-    
-    try {
-        showError('Initiating payment... Please wait.');
-        
-        const response = await fetch('https://novabloodemperor-tech-backend.onrender.com/api/pay/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                phone: phone,
-                amount: 1, // KSh 1 for testing (change to 100 later)
-                account_ref: 'course_search',
-                desc: 'Course Matching Service'
-            })
-        });
-        
-        const data = await response.json();
-        console.log('Payment response:', data);
-        
-        if (response.ok) {
-            if (data.error) {
-                showError('Payment failed: ' + data.error);
-            } else {
-                alert('✅ Payment initiated! Check your phone to complete M-Pesa transaction.');
-                // After successful payment, show courses
-                setTimeout(() => {
-                    findCourses();
-                }, 2000);
-            }
-        } else {
-            showError('Payment failed: ' + (data.error || 'Unknown error'));
-        }
-    } catch (error) {
-        console.error('Payment error:', error);
-        showError('Payment error: ' + error.message);
-    }
-}
-
-async function findCourses() {
-    const clusterPoints = document.getElementById('clusterPoints').value;
-    
-    if (!clusterPoints) {
-        showError('Please enter your cluster points');
-        return;
-    }
-
-    if (!document.getElementById('agreeTerms').checked) {
-        showError('Please agree to the terms and conditions');
-        return;
-    }
-
-    // Collect grades
-    const userGrades = {};
-    subjects.forEach(subject => {
-        const grade = document.getElementById(`grade-${subject}`).value;
-        if (grade) {
-            userGrades[subject] = grade;
-        }
-    });
-
-    if (Object.keys(userGrades).length === 0) {
-        showError('Please enter at least one subject grade');
-        return;
-    }
-
-    try {
-        console.log('Making POST request to check-eligibility');
-        console.log('Request data:', {
-            cluster_points: parseFloat(clusterPoints),
-            grades: userGrades
-        });
-
-        const response = await fetch('https://novabloodemperor-tech-backend.onrender.com/api/check-eligibility/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                cluster_points: parseFloat(clusterPoints),
-                grades: userGrades
-            })
-        });
-        
-        console.log('Response status:', response.status);
-        
-        const data = await response.json();
-        console.log('Response data:', data);
-        
-        if (response.ok) {
-            showResults(data, clusterPoints);
-        } else {
-            showError('Error checking eligibility: ' + (data.detail || 'Unknown error'));
-        }
-    } catch (error) {
-        console.error('Full error:', error);
-        showError('Network error: ' + error.message);
-    }
-}
-
-function showResults(data, userPoints) {
-    const resultsSection = document.getElementById('resultsSection');
-    const resultsContent = document.getElementById('resultsContent');
-    
-    if (data.eligible_programmes.length === 0) {
-        resultsContent.innerHTML = '<p>No courses found matching your criteria. Try adjusting your grades or cluster points.</p>';
-    } else {
-        let content = `<p><strong>Found ${data.total_found} eligible courses:</strong></p>`;
-        data.eligible_programmes.forEach(programme => {
-            content += `
-                <div class="programme-card">
-                    <div class="programme-name">${programme.programme_name}</div>
-                    <div class="programme-university">🏛️ ${programme.university}</div>
-                    <div class="programme-points">📊 Required: ${programme.required_cluster} points | Your points: ${userPoints}</div>
-                    <div class="programme-code">🔢 Code: ${programme.programme_code}</div>
-                </div>
-            `;
-        });
-        resultsContent.innerHTML = content;
-    }
-    
-    resultsSection.style.display = 'block';
-    resultsSection.scrollIntoView({ behavior: 'smooth' });
-}
-
-function showError(message) {
-    const errorElement = document.getElementById('courseError');
-    errorElement.textContent = message;
-    errorElement.style.display = 'block';
-    setTimeout(() => {
-        errorElement.style.display = 'none';
-    }, 5000);
-}
-
-async function downloadPDF() {
-    const eligibleProgrammes = [];
-    
-    // Collect eligible programmes from the current results
-    const programmeCards = document.querySelectorAll('.programme-card');
-    programmeCards.forEach(card => {
-        const programmeName = card.querySelector('.programme-name').textContent;
-        const university = card.querySelector('.programme-university').textContent.replace('🏛️ ', '');
-        const pointsText = card.querySelector('.programme-points').textContent;
-        const pointsMatch = pointsText.match(/Required: ([\d.]+) points/);
-        
-        eligibleProgrammes.push({
-            programme_name: programmeName,
-            university: university,
-            cluster_points: pointsMatch ? parseFloat(pointsMatch[1]) : 0,
-            programme_code: 'N/A' // We'll get this from the backend response later
-        });
-    });
-    
-    if (eligibleProgrammes.length === 0) {
-        alert('No courses found to download. Please find eligible courses first.');
-        return;
-    }
-    
-    const clusterPoints = document.getElementById('clusterPoints').value;
-    
-    try {
-        const response = await fetch('https://novabloodemperor-tech-backend.onrender.com/api/download-pdf/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                eligible_programmes: eligibleProgrammes,
-                cluster_points: clusterPoints
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            // For now, show the PDF content in an alert
-            // Later we can implement actual PDF download
-            alert('PDF Generated Successfully!\\n\\n' + 
-                  'Total Courses: ' + data.total_courses + '\\n' +
-                  'File Name: ' + data.file_name + '\\n\\n' +
-                  'Note: ' + data.note);
+        subjects.forEach(subject => {
+            const subjectItem = document.createElement('div');
+            subjectItem.className = 'subject-item';
             
-            // You can also console.log the full content for testing
-            console.log('PDF Content:', data.pdf_content);
-        } else {
-            alert('Error: ' + (data.message || 'Failed to generate PDF'));
-        }
-    } catch (error) {
-        alert('Network error: ' + error.message);
+            subjectItem.innerHTML = `
+                <span>${subject}</span>
+                <select id="grade-${subject}">
+                    <option value="">Select Grade</option>
+                    ${grades.map(grade => `<option value="${grade}">${grade}</option>`).join('')}
+                </select>
+            `;
+            
+            container.appendChild(subjectItem);
+        });
     }
-}
 
-        // Get the current course data
+    async function processPayment() {
         const clusterPoints = document.getElementById('clusterPoints').value;
+        
+        if (!clusterPoints) {
+            showError('Please enter your cluster points first');
+            return;
+        }
+
+        if (!document.getElementById('agreeTerms').checked) {
+            showError('Please agree to the terms and conditions');
+            return;
+        }
+
+        // Collect grades to verify user has entered data
         const userGrades = {};
         subjects.forEach(subject => {
             const grade = document.getElementById(`grade-${subject}`).value;
@@ -711,118 +502,253 @@ async function downloadPDF() {
             }
         });
 
-        // Get eligible programmes from the displayed results
+        if (Object.keys(userGrades).length === 0) {
+            showError('Please enter at least one subject grade');
+            return;
+        }
+
+        const phone = prompt('Enter your M-Pesa phone number (e.g., 254712345678):');
+        if (!phone) return;
+        
+        try {
+            showError('Initiating payment... Please wait.');
+            
+            const response = await fetch('https://novabloodemperor-tech-backend.onrender.com/api/pay/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    phone: phone,
+                    amount: 1, // KSh 1 for testing (change to 100 later)
+                    account_ref: 'course_search',
+                    desc: 'Course Matching Service'
+                })
+            });
+            
+            const data = await response.json();
+            console.log('Payment response:', data);
+            
+            if (response.ok) {
+                if (data.error) {
+                    showError('Payment failed: ' + data.error);
+                } else {
+                    alert('✅ Payment initiated! Check your phone to complete M-Pesa transaction.');
+                    // After successful payment, show courses
+                    setTimeout(() => {
+                        findCourses();
+                    }, 2000);
+                }
+            } else {
+                showError('Payment failed: ' + (data.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Payment error:', error);
+            showError('Payment error: ' + error.message);
+        }
+    }
+
+    async function findCourses() {
+        const clusterPoints = document.getElementById('clusterPoints').value;
+        
+        if (!clusterPoints) {
+            showError('Please enter your cluster points');
+            return;
+        }
+
+        if (!document.getElementById('agreeTerms').checked) {
+            showError('Please agree to the terms and conditions');
+            return;
+        }
+
+        // Collect grades
+        const userGrades = {};
+        subjects.forEach(subject => {
+            const grade = document.getElementById(`grade-${subject}`).value;
+            if (grade) {
+                userGrades[subject] = grade;
+            }
+        });
+
+        if (Object.keys(userGrades).length === 0) {
+            showError('Please enter at least one subject grade');
+            return;
+        }
+
+        try {
+            console.log('Making POST request to check-eligibility');
+            console.log('Request data:', {
+                cluster_points: parseFloat(clusterPoints),
+                grades: userGrades
+            });
+
+            const response = await fetch('https://novabloodemperor-tech-backend.onrender.com/api/check-eligibility/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    cluster_points: parseFloat(clusterPoints),
+                    grades: userGrades
+                })
+            });
+            
+            console.log('Response status:', response.status);
+            
+            const data = await response.json();
+            console.log('Response data:', data);
+            
+            if (response.ok) {
+                showResults(data, clusterPoints);
+            } else {
+                showError('Error checking eligibility: ' + (data.detail || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Full error:', error);
+            showError('Network error: ' + error.message);
+        }
+    }
+
+    function showResults(data, userPoints) {
+        const resultsSection = document.getElementById('resultsSection');
+        const resultsContent = document.getElementById('resultsContent');
+        
+        if (data.eligible_programmes.length === 0) {
+            resultsContent.innerHTML = '<p>No courses found matching your criteria. Try adjusting your grades or cluster points.</p>';
+        } else {
+            let content = `<p><strong>Found ${data.total_found} eligible courses:</strong></p>`;
+            data.eligible_programmes.forEach(programme => {
+                content += `
+                    <div class="programme-card">
+                        <div class="programme-name">${programme.programme_name}</div>
+                        <div class="programme-university">🏛️ ${programme.university}</div>
+                        <div class="programme-points">📊 Required: ${programme.required_cluster} points | Your points: ${userPoints}</div>
+                        <div class="programme-code">🔢 Code: ${programme.programme_code}</div>
+                    </div>
+                `;
+            });
+            resultsContent.innerHTML = content;
+        }
+        
+        resultsSection.style.display = 'block';
+        resultsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showError(message) {
+        const errorElement = document.getElementById('courseError');
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+        setTimeout(() => {
+            errorElement.style.display = 'none';
+        }, 5000);
+    }
+
+    async function downloadPDF() {
         const eligibleProgrammes = [];
-        document.querySelectorAll('.programme-card').forEach(card => {
+        
+        // Collect eligible programmes from the current results
+        const programmeCards = document.querySelectorAll('.programme-card');
+        programmeCards.forEach(card => {
             const programmeName = card.querySelector('.programme-name').textContent;
             const university = card.querySelector('.programme-university').textContent.replace('🏛️ ', '');
             const pointsText = card.querySelector('.programme-points').textContent;
-            const requiredPoints = pointsText.match(/Required: (\d+(\.\d+)?) points/)[1];
-            const programmeCode = card.querySelector('.programme-code').textContent.replace('🔢 Code: ', '');
+            const pointsMatch = pointsText.match(/Required: ([\d.]+) points/);
+            const codeElement = card.querySelector('.programme-code');
+            const programmeCode = codeElement ? codeElement.textContent.replace('🔢 Code: ', '') : 'N/A';
             
             eligibleProgrammes.push({
                 programme_name: programmeName,
                 university: university,
-                required_cluster: parseFloat(requiredPoints),
+                cluster_points: pointsMatch ? parseFloat(pointsMatch[1]) : 0,
                 programme_code: programmeCode
             });
         });
-
-        // Show loading
-        const downloadBtn = document.querySelector('.download-btn');
-        const originalText = downloadBtn.innerHTML;
-        downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
-        downloadBtn.disabled = true;
-
-        // Call PDF download endpoint
-        const response = await fetch('https://novabloodemperor-tech-backend.onrender.com/api/download-pdf/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                eligible_programmes: eligibleProgrammes,
-                user_points: clusterPoints,
-                user_grades: userGrades
-            })
-        });
-
-        if (response.ok) {
-            // Create download link
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = 'coursepilot_courses.pdf';
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+        
+        if (eligibleProgrammes.length === 0) {
+            alert('No courses found to download. Please find eligible courses first.');
+            return;
+        }
+        
+        const clusterPoints = document.getElementById('clusterPoints').value;
+        
+        try {
+            const response = await fetch('https://novabloodemperor-tech-backend.onrender.com/api/download-pdf/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    eligible_programmes: eligibleProgrammes,
+                    cluster_points: clusterPoints
+                })
+            });
             
-            alert('PDF downloaded successfully!');
-        } else {
-            const errorData = await response.json();
-            alert('PDF download failed: ' + (errorData.error || 'Unknown error'));
+            if (response.ok) {
+                // Create blob from response and download
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `eligible_courses_${clusterPoints}_points.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                alert('PDF downloaded successfully! Check your downloads folder.');
+            } else {
+                const errorData = await response.json();
+                alert('Error: ' + (errorData.message || 'Failed to generate PDF'));
+            }
+        } catch (error) {
+            alert('Network error: ' + error.message);
         }
+    }
 
-    } catch (error) {
-        console.error('PDF download error:', error);
-        alert('PDF download error: ' + error.message);
-    } finally {
-        // Restore button
-        const downloadBtn = document.querySelector('.download-btn');
-        if (downloadBtn) {
-            downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download PDF';
-            downloadBtn.disabled = false;
+    function newSearch() {
+        document.getElementById('resultsSection').style.display = 'none';
+        document.getElementById('clusterPoints').value = '';
+        document.getElementById('agreeTerms').checked = false;
+        subjects.forEach(subject => {
+            document.getElementById(`grade-${subject}`).value = '';
+        });
+    }
+
+    // Mobile Menu Functions
+    function toggleMobileMenu() {
+        const mobileNav = document.getElementById('mobileNav');
+        mobileNav.classList.toggle('active');
+    }
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const mobileNav = document.getElementById('mobileNav');
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        
+        if (!mobileNav.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
+            mobileNav.classList.remove('active');
+        }
+    });
+
+    // Close mobile menu when clicking a link
+    document.querySelectorAll('.mobile-nav-links a').forEach(link => {
+        link.addEventListener('click', () => {
+            document.getElementById('mobileNav').classList.remove('active');
+        });
+    });
+
+    function showAdminModal() {
+        const password = prompt('Enter admin password:');
+        if (password === 'admin123') {
+            window.open('http://127.0.0.1:8000/admin', '_blank');
+        } else if (password) {
+            alert('Incorrect password');
         }
     }
-}
 
-
-function newSearch() {
-    document.getElementById('resultsSection').style.display = 'none';
-    document.getElementById('clusterPoints').value = '';
-    document.getElementById('agreeTerms').checked = false;
-    subjects.forEach(subject => {
-        document.getElementById(`grade-${subject}`).value = '';
-    });
-}
-
-// Mobile Menu Functions
-function toggleMobileMenu() {
-    const mobileNav = document.getElementById('mobileNav');
-    mobileNav.classList.toggle('active');
-}
-
-// Close mobile menu when clicking outside
-document.addEventListener('click', function(event) {
-    const mobileNav = document.getElementById('mobileNav');
-    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-    
-    if (!mobileNav.contains(event.target) && !mobileMenuBtn.contains(event.target)) {
-        mobileNav.classList.remove('active');
-    }
-});
-
-// Close mobile menu when clicking a link
-document.querySelectorAll('.mobile-nav-links a').forEach(link => {
-    link.addEventListener('click', () => {
-        document.getElementById('mobileNav').classList.remove('active');
-    });
-});
-
-function showAdminModal() {
-    const password = prompt('Enter admin password:');
-    if (password === 'admin123') {
-        window.open('http://127.0.0.1:8000/admin', '_blank');
-    } else if (password) {
-        alert('Incorrect password');
-    }
-}
-
-// Initialize
-document.addEventListener('DOMContentLoaded', initializeSubjects);
-    </script>
+    // Initialize
+    document.addEventListener('DOMContentLoaded', initializeSubjects);
+</script>
 </body>
 </html>
