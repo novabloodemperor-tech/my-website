@@ -659,7 +659,7 @@ async function downloadPDF() {
         downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
         downloadBtn.disabled = true;
 
-        // Get ALL courses by making the same API call again
+        // Get ALL courses by making the same API call again to get complete data
         const userGrades = {};
         subjects.forEach(subject => {
             const grade = document.getElementById(`grade-${subject}`).value;
@@ -668,6 +668,7 @@ async function downloadPDF() {
             }
         });
 
+        console.log('Fetching all courses for PDF...');
         const response = await fetch('https://novabloodemperor-tech-backend.onrender.com/api/check-eligibility/', {
             method: 'POST',
             headers: {
@@ -680,8 +681,11 @@ async function downloadPDF() {
         });
 
         const data = await response.json();
+        console.log('Total courses from API:', data.eligible_programmes ? data.eligible_programmes.length : 0);
         
-        if (response.ok && data.eligible_programmes.length > 0) {
+        if (response.ok && data.eligible_programmes && data.eligible_programmes.length > 0) {
+            console.log('Sending', data.eligible_programmes.length, 'courses to PDF generator');
+            
             // Send ALL courses to PDF endpoint
             const pdfResponse = await fetch('https://novabloodemperor-tech-backend.onrender.com/api/download-pdf/', {
                 method: 'POST',
@@ -707,18 +711,18 @@ async function downloadPDF() {
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
                 
-                alert(`PDF downloaded successfully! Contains ${data.eligible_programmes.length} courses from ${new Set(data.eligible_programmes.map(p => p.university)).size} universities.`);
+                alert(`✅ PDF downloaded successfully!\nContains ${data.eligible_programmes.length} courses from your search.`);
             } else {
                 const errorData = await pdfResponse.json();
-                alert('PDF download failed: ' + (errorData.message || 'Unknown error'));
+                alert('❌ PDF download failed: ' + (errorData.message || 'Unknown error'));
             }
         } else {
-            alert('No courses found to download');
+            alert('❌ No courses found to download. Please search for courses first.');
         }
 
     } catch (error) {
         console.error('PDF download error:', error);
-        alert('PDF download error: ' + error.message);
+        alert('❌ Network error: ' + error.message);
     } finally {
         // Restore button
         const downloadBtn = document.querySelector('.download-btn');
